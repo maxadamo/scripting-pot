@@ -1,2 +1,1 @@
 %sudo  ALL=NOPASSWD: /usr/sbin/openvpn*, /usr/bin/killall -SIGINT openvpn
-

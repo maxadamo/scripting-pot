@@ -1,2 +1,1 @@
 sudo killall -SIGINT openvpn
-

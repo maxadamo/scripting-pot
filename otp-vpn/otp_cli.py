@@ -11,7 +11,7 @@ import os
 try:
     import onetimepass as otp
 except ImportError:
-    print "Please install onetimepass libray\n"
+    print "Please install onetimepass libray: pip install onetimepass\n"
     quit()
 
 
@@ -49,7 +49,6 @@ def write_ovpn(client_file, ovpn_file):
 
 
 if __name__ == "__main__":
-
     MY_USER_DIR = os.path.expanduser('~')
     OTPCONFIG = os.path.join(MY_USER_DIR, '.vpn-credentials')
     OVPNFILE = os.path.join(MY_USER_DIR, '.client.ovpn')
@@ -71,8 +70,8 @@ script-security 2
 # push "dhcp-option DNS 123.45.56.89" # usually not needed
 # push "dhcp-option DNS 234.56.78.99" # usually not needed
 setenv PATH /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-up /etc/openvpn/update-systemd-resolved
-down /etc/openvpn/update-systemd-resolved
+up /etc/openvpn/update-resolv-conf
+down /etc/openvpn/update-resolv-conf
 down-pre
 user nobody
 group nogroup
