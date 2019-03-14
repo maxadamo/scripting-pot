@@ -76,6 +76,7 @@ down-pre
 user nobody
 group nogroup
 proto udp
+management localhost 7505
 resolv-retry infinite
 nobind
 persist-key
