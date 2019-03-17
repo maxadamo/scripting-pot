@@ -1,7 +1,7 @@
 #!/usr/bin/ruby
 #
 host = ARGV[0]
-hostgrp = host.downcase.gsub(/[0-9]/, '').gsub(/(^test|^uat|^prod)-/, '')
+hostgrp = host.downcase.gsub(%r{[0-9]}, '').gsub(%r{(^lon|^ch)-}, '').gsub(%r{(^dev|^test|^uat|^prod|^prd)-}, '')
 hostgrp = if hostgrp.include? 'psma-gn-'
             'geant-psma'
           elsif [
@@ -10,12 +10,14 @@ hostgrp = if hostgrp.include? 'psma-gn-'
             'geant-psmp'
           elsif hostgrp == 'rhps'
             'perfsonarkit'
-          elsif hostgrp.include? 'ch-dev-'
-            'ch-dev'
+          # these nodes seem they are gone
+          #elsif hostgrp.include? 'ch-dev-'
+          #  'ch-dev'
           elsif hostgrp.include? 'jenkins'
             'jenkins'
           else
             hostgrp
           end
 
-print hostgrp
+print("#{hostgrp}\n")
+
