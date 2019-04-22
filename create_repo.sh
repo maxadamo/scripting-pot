@@ -51,11 +51,40 @@ EOF
 cat >README.md <<EOF
 ## module for app ${REPO}
 EOF
+cat >.gitignore <<EOF
+.git/
+.*.sw[op]
+.metadata
+.yardoc
+.yardwarns
+*.iml
+/.bundle/
+/.idea/
+/.vagrant/
+/coverage/
+/bin/
+/doc/
+/Gemfile.local
+/Gemfile.lock
+/junit/
+/log/
+/pkg/
+/spec/fixtures/manifests/
+/spec/fixtures/modules/
+/tmp/
+/vendor/
+/convert_report.txt
+/update_report.txt
+.DS_Store
+.project
+.envrc
+/inventory.yaml
+EOF
 git add .
-git commit -m "add README.md and init.pp"
+git commit -m "add README.md .gitignore and init.pp"
 git push -u origin master
 
-for branch in devops uat production test; do
+for branch in test uat production; do
     git checkout -b $branch
     git push --set-upstream origin $branch
 done
