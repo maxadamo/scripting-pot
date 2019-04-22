@@ -4,6 +4,8 @@ Stores OTP challenge to auth file and access OpenVPN
 
 The first time the script creates a configuration file: ~/.vpn-credentials
 
+if we set user nobody and group nogroup, upon disconnection it fails to restore resolv.conf
+
 Author: Massimiliano Adamo <massimiliano.adamo@geant.org>
 '''
 import configparser
@@ -12,22 +14,8 @@ import os
 try:
     import onetimepass as otp
 except ImportError:
-    print("Please install onetimepass libray: pip3 install onetimepass\n")
+    print("Please install onetimepass: pip3 install onetimepass\n")
     os.sys.exit()
-
-
-def check_config(config):
-    """ check if otp_secret, user and password are properly set """
-    if not os.path.isfile(config):
-        secret_file = open(config, 'w')
-        secret_file.write("[otp-vpn]\n")
-        secret_file.write("# OTP Secret\notp_secret = 'XXXXXXXXXXXXXX'\n")
-        secret_file.write("# VPN User\nvpn_user = 'username.vpn'\n")
-        secret_file.write("# VPN Password\nvpn_password = 'your_password'\n")
-        secret_file.close()
-        print(" Could not open {0}\n A sample file {0} was created\n".format(config))
-        print(" Please edit this file and fill in your secret, username and password")
-        os.sys.exit(1)
 
 
 def get_otp(otp_secret):
@@ -35,18 +23,10 @@ def get_otp(otp_secret):
     return otp.get_totp(otp_secret, as_string=True).decode()
 
 
-def write_auth(user, password, otp_token, auth_file):
-    """ write auth file """
-    authentication_file = open(auth_file, 'w')
-    authentication_file.write("{}\n{}{}\n".format(user, password, otp_token))
-    authentication_file.close()
-    os.chmod(auth_file, 0o664)
-
-
-def write_ovpn(client_file, ovpn_file):
+def write_file(file_content, file_name):
     """ write ovpn client """
-    config_file = open(ovpn_file, 'w')
-    config_file.write(client_file)
+    config_file = open(file_name, 'w')
+    config_file.write(file_content)
     config_file.close()
 
 
@@ -55,7 +35,20 @@ if __name__ == "__main__":
     OTPCONFIG = os.path.join(MY_USER_DIR, '.vpn-credentials')
     OVPNFILE = os.path.join(MY_USER_DIR, '.client.ovpn')
     AUTHFILE = os.path.join(MY_USER_DIR, '.vpn-auth')
-    check_config(OTPCONFIG)
+    OTPCONFIG_CONTENT = """\
+[otp-vpn]
+# OTP Secret
+otp_secret = XXXXXXXXXXXXXX
+# VPN User
+vpn_user = username.vpn
+# VPN Password
+vpn_password = your_password
+"""
+    if not os.path.isfile(OTPCONFIG):
+        write_file(OTPCONFIG_CONTENT, OTPCONFIG)
+        print(" Could not open {0}\n A sample file {0} was created\n".format(OTPCONFIG))
+        print(" Please edit this file and fill in your secret, username and password")
+        os.sys.exit()
 
     CONFIG = configparser.RawConfigParser()
     _ = CONFIG.read(OTPCONFIG)
@@ -77,8 +70,8 @@ setenv PATH /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 up /etc/openvpn/update-resolv-conf
 down /etc/openvpn/update-resolv-conf
 down-pre
-user root
-group root
+#user nobody
+#group nogroup
 proto udp
 management localhost 7505
 resolv-retry infinite
@@ -90,7 +83,7 @@ cipher AES-256-CBC
 comp-lzo
 reneg-sec 0
 auth-nocache
-auth-user-pass {0}/.vpn-auth
+auth-user-pass {1}
 <ca>
 -----BEGIN CERTIFICATE-----
 MIIEzTCCA7WgAwIBAgIJALKAow4vc6w7MA0GCSqGSIb3DQEBCwUAMIGfMQswCQYD
@@ -121,14 +114,47 @@ B1tvBOFFVFlEHHK6+eAoIrbG/kzr1onXzxvVTaifUS4KVBcwjrMw89Y0uDSTsXu/
 rqmweNTkxr8iU1vPv8stRYdCTrYcfXffNkhNdz++6Jwz
 -----END CERTIFICATE-----
 </ca>
-""".format(MY_USER_DIR)
+""".format(MY_USER_DIR, AUTHFILE)
 
-    write_ovpn(CLIENT_OVPN, OVPNFILE)
+    JUMP_ON = """\
+#!/bin/bash
+xterm -geometry 160x15 -fg green -bg black -e /bin/bash -c "sudo openvpn --config {}
+echo 'Press Ctrl+c or wait'
+for ((i=20; i>=1; i--)); do
+    printf \$i...
+    sleep 1
+done
+printf 0"
+""".format(OVPNFILE)
+
+    JUMP_STATS = """\
+echo "printing OpenVPN statistics"
+echo "signal SIGUSR2" | telnet 127.0.0.1 7505 >/dev/null
+"""
+
+    JUMP_OFF = """\
+echo "disconnecting OpenVPN"
+echo "signal SIGINT" | telnet 127.0.0.1 7505 >/dev/null
+"""
+
+    SCRIPT_PREFIX = "{}/bin/jump_".format(MY_USER_DIR)
+    write_file(CLIENT_OVPN, OVPNFILE)
+    write_file(JUMP_ON, "{}on.sh".format(SCRIPT_PREFIX))
+    write_file(JUMP_OFF, "{}off.sh".format(SCRIPT_PREFIX))
+    write_file(JUMP_STATS, "{}stats.sh".format(SCRIPT_PREFIX))
+
     MY_TOKEN = get_otp(OTP_SECRET)
-    XTERM_CMD = 'xterm -geometry 160x15 -fg green -bg black'
-    write_auth(VPN_USER, VPN_PASSWORD, MY_TOKEN, AUTHFILE)
+    write_file("{}\n{}{}\n".format(VPN_USER, VPN_PASSWORD, MY_TOKEN), AUTHFILE)
+
+    # Fix permissions
+    os.chmod("{}on.sh".format(SCRIPT_PREFIX), 0o755)
+    os.chmod("{}off.sh".format(SCRIPT_PREFIX), 0o755)
+    os.chmod("{}stats.sh".format(SCRIPT_PREFIX), 0o755)
+    os.chmod(AUTHFILE, 0o640)
+    os.chmod(OTPCONFIG, 0o640)
+
     PROC = subprocess.Popen(
-        '{} -e /bin/bash -c "sudo openvpn --config {}; sleep 10"'.format(XTERM_CMD, OVPNFILE),
+        "{}on.sh".format(SCRIPT_PREFIX),
         shell=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT
