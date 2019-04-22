@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 '''
 Stores OTP challenge to auth file and access OpenVPN
 
@@ -6,31 +6,33 @@ The first time the script creates a configuration file: ~/.vpn-credentials
 
 Author: Massimiliano Adamo <massimiliano.adamo@geant.org>
 '''
+import configparser
 import subprocess
 import os
 try:
     import onetimepass as otp
 except ImportError:
-    print "Please install onetimepass libray: pip install onetimepass\n"
-    quit()
+    print("Please install onetimepass libray: pip3 install onetimepass\n")
+    os.sys.exit()
 
 
 def check_config(config):
     """ check if otp_secret, user and password are properly set """
     if not os.path.isfile(config):
         secret_file = open(config, 'w')
-        secret_file.write("# OTP Secret\nOTP_SECRET = 'XXXXXXXXXXXXXX'\n")
-        secret_file.write("# VPN User\nVPN_USERNAME = 'username.vpn'\n")
-        secret_file.write("# VPN Password\nVPN_PASSWORD = 'your_password'\n")
+        secret_file.write("[otp-vpn]\n")
+        secret_file.write("# OTP Secret\notp_secret = 'XXXXXXXXXXXXXX'\n")
+        secret_file.write("# VPN User\nvpn_user = 'username.vpn'\n")
+        secret_file.write("# VPN Password\nvpn_password = 'your_password'\n")
         secret_file.close()
-        print " Could not open {0}\n A sample file {0} was created\n" \
-              " Please edit this file and fill in your secret, username and password".format(config)
+        print(" Could not open {0}\n A sample file {0} was created\n".format(config))
+        print(" Please edit this file and fill in your secret, username and password")
         os.sys.exit(1)
 
 
 def get_otp(otp_secret):
     """ common commands """
-    return otp.get_totp(otp_secret, as_string=True)
+    return otp.get_totp(otp_secret, as_string=True).decode()
 
 
 def write_auth(user, password, otp_token, auth_file):
@@ -38,7 +40,7 @@ def write_auth(user, password, otp_token, auth_file):
     authentication_file = open(auth_file, 'w')
     authentication_file.write("{}\n{}{}\n".format(user, password, otp_token))
     authentication_file.close()
-    os.chmod(auth_file, 0600)
+    os.chmod(auth_file, 0o664)
 
 
 def write_ovpn(client_file, ovpn_file):
@@ -54,11 +56,13 @@ if __name__ == "__main__":
     OVPNFILE = os.path.join(MY_USER_DIR, '.client.ovpn')
     AUTHFILE = os.path.join(MY_USER_DIR, '.vpn-auth')
     check_config(OTPCONFIG)
-    # make pylint happy
-    OTP_SECRET = None
-    VPN_USER = None
-    VPN_PASSWORD = None
-    execfile(OTPCONFIG)
+
+    CONFIG = configparser.RawConfigParser()
+    _ = CONFIG.read(OTPCONFIG)
+    OTP_SECRET = CONFIG.get('otp-vpn', 'otp_secret')
+    VPN_USER = CONFIG.get('otp-vpn', 'vpn_user')
+    VPN_PASSWORD = CONFIG.get('otp-vpn', 'vpn_password')
+
     CLIENT_OVPN = """\
 client
 verb 2
@@ -73,8 +77,8 @@ setenv PATH /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 up /etc/openvpn/update-resolv-conf
 down /etc/openvpn/update-resolv-conf
 down-pre
-user nobody
-group nogroup
+user root
+group root
 proto udp
 management localhost 7505
 resolv-retry infinite
@@ -124,7 +128,7 @@ rqmweNTkxr8iU1vPv8stRYdCTrYcfXffNkhNdz++6Jwz
     XTERM_CMD = 'xterm -geometry 160x15 -fg green -bg black'
     write_auth(VPN_USER, VPN_PASSWORD, MY_TOKEN, AUTHFILE)
     PROC = subprocess.Popen(
-        '{} -e /bin/bash -c "sudo openvpn --config {}"'.format(XTERM_CMD, OVPNFILE),
+        '{} -e /bin/bash -c "sudo openvpn --config {}; sleep 10"'.format(XTERM_CMD, OVPNFILE),
         shell=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT
