@@ -1,6 +1,6 @@
 [Desktop Entry]
 Encoding=UTF-8
-Name=Jump VPN with OTP
+Name=Jump VPN
 GenericName=Jump VPN with OTP
 Comment=Launch Jump VPN with OTP
 Exec=/home/maxadamo/bin/otp_cli.py
