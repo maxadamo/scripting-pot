@@ -150,7 +150,7 @@ echo "signal SIGINT" | telnet 127.0.0.1 7505 >/dev/null
     os.chmod("{}on.sh".format(SCRIPT_PREFIX), 0o755)
     os.chmod("{}off.sh".format(SCRIPT_PREFIX), 0o755)
     os.chmod("{}stats.sh".format(SCRIPT_PREFIX), 0o755)
-    os.chmod(AUTHFILE, 0o640)
+    os.chmod(AUTHFILE, 0o600)
     os.chmod(OTPCONFIG, 0o640)
 
     PROC = subprocess.Popen(
