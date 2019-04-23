@@ -1,0 +1,11 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=Jump VPN OFF
+GenericName=Close Jump VPN connection
+Comment=Close Jump VPN connection
+Exec=/home/maxadamo/bin/jump_off.sh
+Icon=lock
+Terminal=false
+Type=Application
+MimeType=text/plain;
+Categories=Network;

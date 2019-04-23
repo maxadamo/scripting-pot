@@ -25,6 +25,10 @@ def get_otp(otp_secret):
 
 def write_file(file_content, file_name):
     """ write ovpn client """
+    try:
+        os.makedirs(os.path.dirname(file_name))
+    except FileExistsError:
+        pass
     config_file = open(file_name, 'w')
     config_file.write(file_content)
     config_file.close()
@@ -118,9 +122,9 @@ rqmweNTkxr8iU1vPv8stRYdCTrYcfXffNkhNdz++6Jwz
 
     JUMP_ON = """\
 #!/bin/bash
-xterm -geometry 160x15 -fg green -bg black -e /bin/bash -c "sudo openvpn --config {}
-echo 'Press Ctrl+c or wait'
-for ((i=20; i>=1; i--)); do
+rxvt -depth 32 -bg rgba:0000/0099/9999/0000 -fg "[99]pink" --geometry 160x15 -title "Jump VPN" -e /bin/bash -c "sudo openvpn --config {}
+echo 'Wait or press Ctrl+c'
+for ((i=10; i>=1; i--)); do
     printf \$i...
     sleep 1
 done
