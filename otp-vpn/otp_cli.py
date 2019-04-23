@@ -25,20 +25,27 @@ def get_otp(otp_secret):
 
 def write_file(file_content, file_name):
     """ write ovpn client """
-    try:
-        os.makedirs(os.path.dirname(file_name))
-    except FileExistsError:
-        pass
     config_file = open(file_name, 'w')
     config_file.write(file_content)
     config_file.close()
 
 
 if __name__ == "__main__":
+    SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+    SCRIPT_NAME = os.path.basename(__file__)
+    SCRIPT_PATH = os.path.join(SCRIPT_DIR, SCRIPT_NAME)
     MY_USER_DIR = os.path.expanduser('~')
+    try:
+        os.makedirs(os.path.join(MY_USER_DIR, MY_USER_DIR))
+    except FileExistsError:
+        pass
+    if not os.path.islink(os.path.join(MY_USER_DIR, SCRIPT_NAME)):
+        os.symlink(SCRIPT_PATH, os.path.join(MY_USER_DIR, SCRIPT_NAME))
+
     OTPCONFIG = os.path.join(MY_USER_DIR, '.vpn-credentials')
     OVPNFILE = os.path.join(MY_USER_DIR, '.client.ovpn')
     AUTHFILE = os.path.join(MY_USER_DIR, '.vpn-auth')
+
     OTPCONFIG_CONTENT = """\
 [otp-vpn]
 # OTP Secret
@@ -122,7 +129,7 @@ rqmweNTkxr8iU1vPv8stRYdCTrYcfXffNkhNdz++6Jwz
 
     JUMP_ON = """\
 #!/bin/bash
-rxvt -depth 32 -bg rgba:0000/0099/9999/0000 -fg "[99]green" --geometry 160x15 -title "Jump VPN" -e /bin/bash -c "sudo openvpn --config {}
+rxvt -depth 32 -bg rgba:0000/0000/0000/9999 -fg "[99]green" --geometry 160x15 -title "Jump VPN" -e /bin/bash -c "sudo openvpn --config {}
 echo 'Wait or press Ctrl+c'
 for ((i=10; i>=1; i--)); do
     printf \$i...
@@ -141,7 +148,55 @@ echo "disconnecting OpenVPN"
 echo "signal SIGINT" | telnet 127.0.0.1 7505 >/dev/null
 """
 
+    JUMP_ON_DESKTOP = """\
+[Desktop Entry]
+Encoding=UTF-8
+Name=Jump VPN
+GenericName=Jump VPN with OTP
+Comment=Launch Jump VPN with OTP
+Exec={}/bin/otp_cli.py
+Icon=lock
+Terminal=false
+Type=Application
+MimeType=text/plain;
+Categories=Network;
+""".format(MY_USER_DIR)
+
+    JUMP_OFF_DESKTOP = """\
+[Desktop Entry]
+Encoding=UTF-8
+Name=Jump VPN OFF
+GenericName=Close Jump VPN connection
+Comment=Close Jump VPN connection
+Exec={}/bin/jump_off.sh
+Icon=lock
+Terminal=false
+Type=Application
+MimeType=text/plain;
+Categories=Network;
+""".format(MY_USER_DIR)
+
+    JUMP_STATS_DESKTOP = """\
+[Desktop Entry]
+Encoding=UTF-8
+Name=Jump VPN Stats
+GenericName=Dump VPN Statistics
+Comment=Close Jump VPN Statistics
+Exec={}/bin/jump_stats.sh
+Icon=lock
+Terminal=false
+Type=Application
+MimeType=text/plain;
+Categories=Network;
+""".format(MY_USER_DIR)
+
     SCRIPT_PREFIX = "{}/bin/jump_".format(MY_USER_DIR)
+    write_file(JUMP_ON_DESKTOP, os.path.join(
+        MY_USER_DIR, '.local/share/applications/jump-vpn.desktop'))
+    write_file(JUMP_STATS_DESKTOP, os.path.join(
+        MY_USER_DIR, '.local/share/applications/jump-vpn-stats.desktop'))
+    write_file(JUMP_OFF_DESKTOP, os.path.join(
+        MY_USER_DIR, '.local/share/applications/jump-vpn-off.desktop'))
     write_file(CLIENT_OVPN, OVPNFILE)
     write_file(JUMP_ON, "{}on.sh".format(SCRIPT_PREFIX))
     write_file(JUMP_OFF, "{}off.sh".format(SCRIPT_PREFIX))
@@ -157,6 +212,7 @@ echo "signal SIGINT" | telnet 127.0.0.1 7505 >/dev/null
     os.chmod(AUTHFILE, 0o600)
     os.chmod(OTPCONFIG, 0o640)
 
+    # Here we go:
     PROC = subprocess.Popen(
         "{}on.sh".format(SCRIPT_PREFIX),
         shell=True,
