@@ -130,12 +130,12 @@ rqmweNTkxr8iU1vPv8stRYdCTrYcfXffNkhNdz++6Jwz
     JUMP_ON = """\
 #!/bin/bash
 rxvt -depth 32 -bg rgba:0000/0000/0000/9999 -fg "[99]green" --geometry 160x15 -title "Jump VPN" -e /bin/bash -c "sudo openvpn --config {}
-echo 'Wait or press Ctrl+c'
-for ((i=10; i>=1; i--)); do
-    printf \$i...
-    sleep 1
-done
-printf 0"
+#echo 'Wait or press Ctrl+c'
+#for ((i=10; i>=1; i--)); do
+#    printf \$i...
+#    sleep 1
+#done
+#printf 0"
 """.format(OVPNFILE)
 
     JUMP_STATS = """\
