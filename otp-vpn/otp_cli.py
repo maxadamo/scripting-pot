@@ -72,7 +72,9 @@ client
 verb 2
 dev tun
 # log {0}/jump.log
+remote 83.97.92.163 1194
 remote 83.97.92.126 1194
+remote-random
 script-security 2
 # pull-filter ignore "dhcp-option DNS" # usually not needed
 # push "dhcp-option DNS 123.45.56.89" # usually not needed
