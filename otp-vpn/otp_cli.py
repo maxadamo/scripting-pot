@@ -129,13 +129,9 @@ rqmweNTkxr8iU1vPv8stRYdCTrYcfXffNkhNdz++6Jwz
 
     JUMP_ON = """\
 #!/bin/bash
-rxvt -depth 32 -bg rgba:0000/0000/0000/9999 -fg "[99]green" --geometry 160x15 -title "Jump VPN" -e /bin/bash -c "sudo openvpn --config {}
-#echo 'Wait or press Ctrl+c'
-#for ((i=10; i>=1; i--)); do
-#    printf \$i...
-#    sleep 1
-#done
-#printf 0"
+rxvt -depth 32 -bg rgba:0000/0000/0000/9999 -fg "[99]green" \\
+    --geometry 160x15 -title "Jump VPN" -e /bin/bash \\
+    -c "sudo openvpn --config {}"
 """.format(OVPNFILE)
 
     JUMP_STATS = """\
@@ -155,7 +151,7 @@ Name=Jump VPN
 GenericName=Jump VPN with OTP
 Comment=Launch Jump VPN with OTP
 Exec={}/bin/otp_cli.py
-Icon=network-vpn
+Icon=network-vpn-symbolic
 Terminal=false
 Type=Application
 MimeType=text/plain;
@@ -169,7 +165,7 @@ Name=Jump VPN OFF
 GenericName=Close Jump VPN connection
 Comment=Close Jump VPN connection
 Exec={}/bin/jump_off.sh
-Icon=network-vpn-acquiring
+Icon=network-vpn-acquiring-symbolic
 Terminal=false
 Type=Application
 MimeType=text/plain;
@@ -183,7 +179,7 @@ Name=Jump VPN Stats
 GenericName=Dump VPN Statistics
 Comment=Close Jump VPN Statistics
 Exec={}/bin/jump_stats.sh
-Icon=network-vpn-no-route
+Icon=network-vpn-no-route-symbolic
 Terminal=false
 Type=Application
 MimeType=text/plain;
