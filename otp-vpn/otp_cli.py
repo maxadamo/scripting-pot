@@ -8,6 +8,7 @@ if we set user nobody and group nogroup, upon disconnection it fails to restore 
 
 Author: Massimiliano Adamo <massimiliano.adamo@geant.org>
 '''
+from distutils.spawn import find_executable
 import configparser
 import subprocess
 import os
@@ -16,6 +17,11 @@ try:
 except ImportError:
     print("Please install onetimepass: pip3 install onetimepass\n")
     os.sys.exit()
+
+
+def is_tool(application):
+    """Check whether `name` is on PATH."""
+    return find_executable(application) is not None
 
 
 def get_otp(otp_secret):
@@ -31,6 +37,15 @@ def write_file(file_content, file_name):
 
 
 if __name__ == "__main__":
+
+    if not is_tool('rxvt'):
+        print('please install rxvt-unicode or add it to PATH')
+        os.sys.exit()
+
+    if not is_tool('openvpn'):
+        print('please install openvpn or add it to PATH')
+        os.sys.exit()
+
     SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
     SCRIPT_NAME = os.path.basename(__file__)
     SCRIPT_PATH = os.path.join(SCRIPT_DIR, SCRIPT_NAME)
