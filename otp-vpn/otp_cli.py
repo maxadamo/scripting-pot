@@ -17,16 +17,17 @@ except ImportError:
     os.sys.exit()
 
 
+
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 SCRIPT_NAME = os.path.basename(__file__)
 SCRIPT_PATH = os.path.join(SCRIPT_DIR, SCRIPT_NAME)
 MY_USER_DIR = os.path.expanduser('~')
 try:
-    os.makedirs(os.path.join(MY_USER_DIR, MY_USER_DIR))
+    os.makedirs(os.path.join(MY_USER_DIR, 'bin'))
 except FileExistsError:
     pass
-if not os.path.islink(os.path.join(MY_USER_DIR, SCRIPT_NAME)):
-    os.symlink(SCRIPT_PATH, os.path.join(MY_USER_DIR, SCRIPT_NAME))
+if not os.path.islink(os.path.join(MY_USER_DIR, 'bin', SCRIPT_NAME)):
+    os.symlink(SCRIPT_PATH, os.path.join(MY_USER_DIR, 'bin', SCRIPT_NAME))
 
 OTPCONFIG = os.path.join(MY_USER_DIR, '.vpn-credentials')
 OTPCONFIG_CONTENT = """\
