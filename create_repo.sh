@@ -41,7 +41,7 @@ cd ${REPO}
 touch README.md
 mkdir manifests
 cat >./manifests/init.pp <<EOF
-# Class: ${REPO}
+# == Class: ${REPO}
 #
 #
 class ${REPO} {
