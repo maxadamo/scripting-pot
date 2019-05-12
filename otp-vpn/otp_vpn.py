@@ -87,12 +87,15 @@ client
 verb 2
 dev tun
 #log {0}/jump.log
+remote 2001:798:3::96 1194
+remote 2001:798:3::bb 1194
 remote 83.97.92.163 1194
 remote 83.97.92.126 1194
 connect-timeout 3
 connect-retry 2
 connect-retry-max 2
 remote-random
+ncp-disable
 script-security 2
 # pull-filter ignore "dhcp-option DNS" # usually not needed
 # push "dhcp-option DNS 123.45.56.89" # usually not needed
