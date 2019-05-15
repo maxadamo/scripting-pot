@@ -26,6 +26,6 @@ Now you can run the script as user `foo` for the first time:
 
 ## hints
 
-- Do not run the script as root
+- Do not run the script as root (or with sudo)
 - Do not delete or move the repository
 - at times, remember to pull the repo (I may have added some change)
