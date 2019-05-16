@@ -18,7 +18,7 @@ Now you can run the script as user `foo` for the first time:
 
 1. you have GNOME:
 
-    search for an icon starting with `Jump VPN`: there is "Jump VPN Stats", "Jump VPN OFF"
+    search for an icon starting with `Jump VPN`: there is "Jump VPN", "Jump VPN Stats", "Jump VPN OFF"
 
 2. you don't have GNOME:
 
