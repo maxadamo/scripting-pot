@@ -172,12 +172,21 @@ Encoding=UTF-8
 Name=Jump VPN
 GenericName=Jump VPN with OTP
 Comment=Launch Jump VPN with OTP
-Exec={}/bin/otp_vpn.py
+Exec={0}/bin/otp_vpn.py
 Icon=network-vpn-symbolic
 Terminal=false
 Type=Application
 MimeType=text/plain;
 Categories=Network;
+Actions=off;stats;
+
+[Desktop Action off]
+Name=Jump VPN OFF
+Exec={0}/bin/jump_off.sh
+
+[Desktop Action stats]
+Name=Jump VPN Stats
+Exec={0}/bin/jump_stats.sh
 """.format(MY_USER_DIR)
 
     JUMP_OFF_DESKTOP = """\
