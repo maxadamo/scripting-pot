@@ -24,6 +24,10 @@ Now you can run the script as user `foo` for the first time:
 
     run either `/home/foo/bin/otp_vpn.py`, `/home/maxadamo/bin/jump_off.sh`
 
+3. long press the icon:
+
+    it will appear an option to print statistics of close the VPN
+
 ## hints
 
 - Do not run the script as root (or with sudo)
