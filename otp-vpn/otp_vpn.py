@@ -22,10 +22,13 @@ except ImportError:
 def git_pull(scripting_pot):
     """ update repository """
     subprocess.Popen(
-        ["git", "pull"],
+        ['git', 'reset', '--hard', 'FETCH_HEAD'],
         cwd=scripting_pot,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT
+        stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+    )
+    subprocess.Popen(
+        ["git", "pull"], cwd=scripting_pot,
+        stdout=subprocess.PIPE, stderr=subprocess.STDOUT
     )
 
 
