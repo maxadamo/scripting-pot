@@ -19,6 +19,16 @@ except ImportError:
     os.sys.exit()
 
 
+def git_pull(scripting_pot):
+    """ update repository """
+    subprocess.Popen(
+        ["git", "pull"],
+        cwd=scripting_pot,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT
+    )
+
+
 def is_tool(application):
     """Check whether `name` is on PATH."""
     return find_executable(application) is not None
@@ -38,24 +48,29 @@ def write_file(file_content, file_name):
 
 if __name__ == "__main__":
 
-    if not is_tool('rxvt'):
-        print('please install rxvt-unicode or add it to PATH')
-        os.sys.exit()
 
-    if not is_tool('openvpn'):
-        print('please install openvpn or add it to PATH')
-        os.sys.exit()
+    for my_tool in ['rxvt-unicode', 'openvpn', 'git']:
+        if not is_tool(my_tool):
+            print('please install {} or add it to PATH'.format(my_tool))
+            os.sys.exit()
 
     SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
     SCRIPT_NAME = os.path.basename(__file__)
     SCRIPT_PATH = os.path.join(SCRIPT_DIR, SCRIPT_NAME)
     MY_USER_DIR = os.path.expanduser('~')
+    SCRIPT_LINK = os.path.join(MY_USER_DIR, 'bin', SCRIPT_NAME)
     try:
         os.makedirs(os.path.join(MY_USER_DIR, 'bin'))
     except FileExistsError:
         pass
-    if not os.path.islink(os.path.join(MY_USER_DIR, 'bin', SCRIPT_NAME)):
-        os.symlink(SCRIPT_PATH, os.path.join(MY_USER_DIR, 'bin', SCRIPT_NAME))
+    if not os.path.islink(SCRIPT_LINK):
+        os.symlink(SCRIPT_PATH, SCRIPT_LINK)
+        TARGET_DIR = None
+    else:
+        TARGET_DIR = os.path.dirname(os.path.dirname(os.readlink(SCRIPT_LINK)))
+
+    if TARGET_DIR:
+        git_pull(TARGET_DIR)
 
     OTPCONFIG = os.path.join(MY_USER_DIR, '.vpn-credentials')
     OVPNFILE = os.path.join(MY_USER_DIR, '.client.ovpn')

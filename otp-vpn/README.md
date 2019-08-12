@@ -4,7 +4,7 @@
 
 Let's assume you are logged in as user `foo`. You need first a sudo rule for your user as following:
 
-```
+```bash
 foo  ALL=NOPASSWD: /usr/sbin/openvpn*
 ```
 
@@ -28,4 +28,3 @@ Now you can run the script as user `foo` for the first time:
 
 - Do not run the script as root (or with sudo)
 - Do not delete or move the repository
-- at times, remember to pull the repo (I may have added some change)
