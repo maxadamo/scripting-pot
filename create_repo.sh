@@ -1,7 +1,8 @@
 #!/bin/bash
 #
-if ! which jq &>/dev/null; then
+if ! which jqAAA &>/dev/null; then
     echo "Please install 'jq'and run the script again"
+    exit
 elif ! test -f ~/.gitlabrc; then
     cat >~/.gitlabrc <<'EOF'
 GITLAB_TOKEN='your-token'
