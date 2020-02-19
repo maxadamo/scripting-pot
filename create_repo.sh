@@ -1,6 +1,8 @@
 #!/bin/bash
 #
-if ! test -f ~/.gitlabrc; then
+if ! which jq &>/dev/null; then
+    echo "Please install 'jq'and run the script again"
+elif ! test -f ~/.gitlabrc; then
     cat >~/.gitlabrc <<'EOF'
 GITLAB_TOKEN='your-token'
 GIT_SERVER='gitlab.geant.net'
@@ -8,8 +10,10 @@ APPS_GROUP='xx'
 PUPPET_GROUP='xx'
 export GITLAB_TOKEN GIT_SERVER APPS_GROUP PUPPET_GROUP
 EOF
+    echo 'please fill the data inside ~/.gitlabrc and run the script again'
     exit
 fi
+
 source ~/.gitlabrc
 
 if [ "$#" -ne 2 ]; then
