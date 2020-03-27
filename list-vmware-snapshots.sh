@@ -21,7 +21,7 @@ done
 
 echo -e "Datacenter: PARIS\n${SEP}"
 for VM in $PAR_VM; do
-    SNAP=$(vm_snapshot -l fra --vm $VM -ls)
+    SNAP=$(vm_snapshot -l par --vm $VM -ls)
     if echo "$SNAP" | grep -q ']  '; then
         echo "$SNAP" | awk '!/ found /&&!/Script processed/'
     fi
@@ -29,7 +29,7 @@ done
 
 echo -e "Datacenter: LONDON\n${SEP}"
 for VM in $LON_VM; do
-    SNAP=$(vm_snapshot -l fra --vm $VM -ls)
+    SNAP=$(vm_snapshot -l lon --vm $VM -ls)
     if echo "$SNAP" | grep -q ']  '; then
         echo "$SNAP" | awk '!/ found /&&!/Script processed/'
     fi
