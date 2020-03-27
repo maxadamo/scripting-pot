@@ -2,34 +2,48 @@
 #
 # it works only in conjunction with TerraformWare (Géant Tool)
 #
-SEP="======================"
-echo "fetching VM list from FRANKFURT"
-FRA_VM=$(vm_list -l fra | awk -F '/' '/\/vm\//&&!/Templates/{ print $NF }')
-echo "fetching VM list from PARIS"
-PAR_VM=$(vm_list -l par | awk -F '/' '/\/vm\//&&!/Templates/{ print $NF }')
-echo "fetching VM list from LONDON"
-LON_VM=$(vm_list -l lon | awk -F '/' '/\/vm\//&&!/Templates/{ print $NF }')
-echo -e "done\n"
 
-echo -e "Datacenter: FRANKFURT\n${SEP}"
+if [[ "$#" -ne 1 ]]; then
+    echo "you need to supply one location, between lon, par and fra"
+    echo "for instance: ${0} lon"
+    exit
+fi
+
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+    lon | london)
+        LOCATION="LONDON"
+        loc="lon"
+        ;;
+    par | paris)
+        LOCATION="PARIS"
+        loc="par"
+        ;;
+    fra | frankfurt)
+        LOCATION="FRANKFURT"
+        loc="fra"
+        ;;
+    help | h | --help | -h)
+        echo "you need to supply one location, between lon, par and fra"
+        echo "for instance: ${0} lon"
+        exit
+        ;;
+    *)
+        echo "Unknown parameter passed: $1"
+        echo "valid parameters are: {lon, par, fra}"
+        exit 1
+        ;;
+    esac
+    shift
+done
+
+SEP="==============================="
+echo -e "${SEP}\nfetching VM list from ${LOCATION}\n${SEP}\n"
+FRA_VM=$(vm_list -l ${loc} | awk -F '/' '/\/vm\//&&!/Templates/{ print $NF }')
+
+echo -e "Datacenter: ${LOCATION}\n${SEP}"
 for VM in $FRA_VM; do
-    SNAP=$(vm_snapshot -l fra --vm $VM -ls)
-    if echo "$SNAP" | grep -q ']  '; then
-        echo "$SNAP" | awk '!/ found /&&!/Script processed/'
-    fi
-done
-
-echo -e "Datacenter: PARIS\n${SEP}"
-for VM in $PAR_VM; do
-    SNAP=$(vm_snapshot -l par --vm $VM -ls)
-    if echo "$SNAP" | grep -q ']  '; then
-        echo "$SNAP" | awk '!/ found /&&!/Script processed/'
-    fi
-done
-
-echo -e "Datacenter: LONDON\n${SEP}"
-for VM in $LON_VM; do
-    SNAP=$(vm_snapshot -l lon --vm $VM -ls)
+    SNAP=$(vm_snapshot -l $loc --vm $VM -ls)
     if echo "$SNAP" | grep -q ']  '; then
         echo "$SNAP" | awk '!/ found /&&!/Script processed/'
     fi
