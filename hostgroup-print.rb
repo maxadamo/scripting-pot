@@ -8,7 +8,7 @@ hostgrp = if hostgrp.include? 'psma-gn-'
             'psmp-gn-bw', 'ps-test', 'psmp-lhc-mgmt', 'psmp-gn-mgmt-'
           ].any? { |w| hostgrp.include?(w) }
             'geant-psmp'
-          elsif hostgrp == 'rhps'
+          elsif ['rhps', 'rhpsc'].include?(hostgrp)
             'perfsonarkit'
           # these nodes seem they are gone
           #elsif hostgrp.include? 'ch-dev-'
