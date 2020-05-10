@@ -11,19 +11,27 @@ echo -e "\nYou are merging the repository $(basename $(pwd))\n"
 read -p "Are you sure? [Yy] " -n 1 -r
 echo
 
+git up
+
 if [[ $REPLY =~ ^[yY]$ ]]; then
 
     MYBRANCH=$(git rev-parse --abbrev-ref HEAD)
     SEPARATOR="\n============================"
 
-    for BRANCH in $(ls .git/refs/heads); do
-        if [ $BRANCH != $MYBRANCH -a $BRANCH != 'master' ]; then
-            echo -e "${SEPARATOR}\nswitching to $BRANCH"
-            git checkout $BRANCH
-            git merge $MYBRANCH
-            git push
-        fi
-    done
+    if [ $MYBRANCH == 'test' ]; then
+        git checkout uat
+        git merge test
+        git push
+        git checkout production
+        git merge test
+        git push
+    fi
+
+    if [ $MYBRANCH == 'uat' ]; then
+        git checkout production
+        git merge test
+        git push
+    fi
 
     echo -e "${SEPARATOR}\nswitching back to $MYBRANCH"
     git checkout $MYBRANCH
