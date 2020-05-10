@@ -11,8 +11,6 @@ echo -e "\nYou are merging the repository $(basename $(pwd))\n"
 read -p "Are you sure? [Yy] " -n 1 -r
 echo
 
-git up
-
 if [[ $REPLY =~ ^[yY]$ ]]; then
 
     MYBRANCH=$(git rev-parse --abbrev-ref HEAD)
