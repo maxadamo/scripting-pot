@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-if ! which jqAAA &>/dev/null; then
+if ! which jq &>/dev/null; then
     echo "Please install 'jq'and run the script again"
     exit
 elif ! test -f ~/.gitlabrc; then
