@@ -1,7 +1,7 @@
 #!/bin/bash
 #
-if [ ! -d .git ]; then
-    echo "not a git root directory"
+if ! git remove -v &>/dev/null; then
+    echo "not a git repository"
     exit
 fi
 
