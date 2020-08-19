@@ -1,7 +1,7 @@
 #!/bin/bash
 #
-if [ ! -d .git ]; then
-    echo "not a git root directory"
+if ! git remote &>/dev/null; then
+    echo "not a git repository"
     exit
 fi
 
@@ -17,6 +17,8 @@ if [[ $REPLY =~ ^[yY]$ ]]; then
     SEPARATOR="\n============================"
 
     if [ $MYBRANCH == 'test' ]; then
+        git merge uat; git push
+        git merge production; git push
         git checkout uat
         git merge test
         git push
@@ -26,6 +28,9 @@ if [[ $REPLY =~ ^[yY]$ ]]; then
     fi
 
     if [ $MYBRANCH == 'uat' ]; then
+        # try to merge back first
+        git merge production; git push
+        # checkout production
         git checkout production
         git merge test
         git push
