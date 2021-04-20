@@ -39,8 +39,8 @@ curl --insecure --silent --request POST --header "PRIVATE-TOKEN: ${GITLAB_TOKEN}
 echo -e "\nsleep 3 seconds\n"
 sleep 3
 
-mkdir -p ~/puppet6
-cd ~/puppet6
+mkdir -p ~/puppet7
+cd ~/puppet7
 git clone gitlab@${GIT_SERVER}:${1}/${REPO}.git
 cd ${REPO}
 touch README.md
