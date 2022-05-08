@@ -256,9 +256,9 @@ Categories=Network;
     write_file(f"{VPN_USER}\n{VPN_PASSWORD}{MY_TOKEN}\n", AUTHFILE)
 
     # Fix permissions
-    os.chmod("f{SCRIPT_PREFIX}on.sh", 0o755)
-    os.chmod("f{SCRIPT_PREFIX}off.sh", 0o755)
-    os.chmod("f{SCRIPT_PREFIX}stats.sh", 0o755)
+    os.chmod(f"{SCRIPT_PREFIX}on.sh", 0o755)
+    os.chmod(f"{SCRIPT_PREFIX}off.sh", 0o755)
+    os.chmod(f"{SCRIPT_PREFIX}stats.sh", 0o755)
     os.chmod(AUTHFILE, 0o600)
     os.chmod(OTPCONFIG, 0o640)
 
