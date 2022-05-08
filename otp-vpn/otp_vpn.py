@@ -8,6 +8,7 @@ if we set user nobody and group nogroup, upon disconnection it fails to restore 
 
 Author: Massimiliano Adamo <massimiliano.adamo@geant.org>
 '''
+from genericpath import isfile
 import shutil
 import configparser
 import subprocess
@@ -56,6 +57,10 @@ if __name__ == "__main__":
         if not is_tool(my_tool):
             print('please install {} or add it to PATH'.format(my_tool))
             os.sys.exit()
+
+    if not os.path.isfile('/etc/openvpn/update-systemd-resolved'):
+        print('please install openvpn-systemd-resolved')
+        os.sys.exit()
 
     SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
     SCRIPT_NAME = os.path.basename(__file__)
