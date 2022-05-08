@@ -50,7 +50,7 @@ def write_file(file_content, file_name, file_mode=0o640):
 
 if __name__ == "__main__":
 
-    for my_tool in ['rxvt-unicode', 'openvpn', 'git']:
+    for my_tool in ['tilda', 'openvpn', 'git']:
         if not is_tool(my_tool):
             print(f'please install {my_tool} or add it to PATH')
             os.sys.exit()
@@ -74,8 +74,8 @@ if __name__ == "__main__":
     else:
         TARGET_DIR = os.path.dirname(os.path.dirname(os.readlink(SCRIPT_LINK)))
 
-    if TARGET_DIR:
-        git_pull(TARGET_DIR)
+    #if TARGET_DIR:
+    #    git_pull(TARGET_DIR)
 
     OTPCONFIG = os.path.join(MY_USER_DIR, '.vpn-credentials')
     OVPNFILE = os.path.join(MY_USER_DIR, '.client.ovpn')
@@ -171,9 +171,7 @@ rqmweNTkxr8iU1vPv8stRYdCTrYcfXffNkhNdz++6Jwz
 
     JUMP_ON = f"""\
 #!/bin/bash
-rxvt -depth 32 -bg rgba:0000/0000/0000/9999 -fg "[99]green" \\
-    --geometry 160x15 -title "Jump VPN" -e /bin/bash \\
-    -c "sudo openvpn --config {OVPNFILE}"
+tilda -c "sudo openvpn --config {OVPNFILE}"
 """
 
     JUMP_STATS = """\
