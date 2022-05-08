@@ -12,6 +12,7 @@ from genericpath import isfile
 import shutil
 import configparser
 import subprocess
+import git
 import os
 try:
     import pyotp
@@ -22,15 +23,10 @@ except ImportError:
 
 def git_pull(scripting_pot):
     """ update repository """
-    subprocess.Popen(
-        ['git', 'reset', '--hard', 'FETCH_HEAD'],
-        cwd=scripting_pot,
-        stdout=subprocess.PIPE, stderr=subprocess.STDOUT
-    )
-    subprocess.Popen(
-        ["git", "pull"], cwd=scripting_pot,
-        stdout=subprocess.PIPE, stderr=subprocess.STDOUT
-    )
+    git_cmd = git.cmd.Git(scripting_pot)
+    git_cmd.reset('--hard', 'FETCH_HEAD')
+    git_cmd.checkout('master')
+    git_cmd.pull()
 
 
 def is_tool(application):
@@ -44,11 +40,12 @@ def get_otp(otp_secret):
     return totp.now()
 
 
-def write_file(file_content, file_name):
+def write_file(file_content, file_name, file_mode=0o640):
     """ write ovpn client """
     config_file = open(file_name, 'w')
     config_file.write(file_content)
     config_file.close()
+    os.chmod(file_name, file_mode)
 
 
 if __name__ == "__main__":
@@ -94,7 +91,7 @@ vpn_user = username.vpn
 vpn_password = your_password
 """
     if not os.path.isfile(OTPCONFIG):
-        write_file(OTPCONFIG_CONTENT, OTPCONFIG)
+        write_file(OTPCONFIG_CONTENT, OTPCONFIG, 0o640)
         print(f" Could not open {OTPCONFIG}\n A sample file {OTPCONFIG} was created\n")
         print(" Please edit this file and fill in your secret, username and password")
         os.sys.exit()
@@ -248,19 +245,12 @@ Categories=Network;
     write_file(JUMP_OFF_DESKTOP, os.path.join(
         MY_USER_DIR, '.local/share/applications/jump-vpn-off.desktop'))
     write_file(CLIENT_OVPN, OVPNFILE)
-    write_file(JUMP_ON, f"{SCRIPT_PREFIX}on.sh")
-    write_file(JUMP_OFF, f"{SCRIPT_PREFIX}off.sh")
-    write_file(JUMP_STATS, f"{SCRIPT_PREFIX}stats.sh")
+    write_file(JUMP_ON, f"{SCRIPT_PREFIX}on.sh", 0o755)
+    write_file(JUMP_OFF, f"{SCRIPT_PREFIX}off.sh", 0o755)
+    write_file(JUMP_STATS, f"{SCRIPT_PREFIX}stats.sh", 0o755)
 
     MY_TOKEN = get_otp(OTP_SECRET)
-    write_file(f"{VPN_USER}\n{VPN_PASSWORD}{MY_TOKEN}\n", AUTHFILE)
-
-    # Fix permissions
-    os.chmod(f"{SCRIPT_PREFIX}on.sh", 0o755)
-    os.chmod(f"{SCRIPT_PREFIX}off.sh", 0o755)
-    os.chmod(f"{SCRIPT_PREFIX}stats.sh", 0o755)
-    os.chmod(AUTHFILE, 0o600)
-    os.chmod(OTPCONFIG, 0o640)
+    write_file(f"{VPN_USER}\n{VPN_PASSWORD}{MY_TOKEN}\n", AUTHFILE, 0o600)
 
     # Here we go:
     PROC = subprocess.Popen(
