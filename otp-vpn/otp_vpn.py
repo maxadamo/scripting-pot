@@ -124,8 +124,8 @@ script-security 2
 push "dhcp-option DNS 83.97.93.200" # usually not needed
 # push "dhcp-option DNS 234.56.78.99" # usually not needed
 setenv PATH /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-up /etc/openvpn/update-resolv-conf
-down /etc/openvpn/update-resolv-conf
+up /etc/openvpn/update-systemd-resolved
+down /etc/openvpn/update-systemd-resolved
 down-pre
 #user nobody
 #group nogroup
