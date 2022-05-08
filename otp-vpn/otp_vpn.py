@@ -74,8 +74,8 @@ if __name__ == "__main__":
     else:
         TARGET_DIR = os.path.dirname(os.path.dirname(os.readlink(SCRIPT_LINK)))
 
-    #if TARGET_DIR:
-    #    git_pull(TARGET_DIR)
+    if TARGET_DIR:
+        git_pull(TARGET_DIR)
 
     OTPCONFIG = os.path.join(MY_USER_DIR, '.vpn-credentials')
     OVPNFILE = os.path.join(MY_USER_DIR, '.client.ovpn')
@@ -171,7 +171,9 @@ rqmweNTkxr8iU1vPv8stRYdCTrYcfXffNkhNdz++6Jwz
 
     JUMP_ON = f"""\
 #!/bin/bash
-tilda -c "sudo openvpn --config {OVPNFILE}"
+rxvt -depth 32 -bg rgba:0000/0000/0000/9999 -fg "[99]green" \\
+    --geometry 160x15 -title "Jump VPN" -e /bin/bash \\
+    -c "sudo openvpn --config {OVPNFILE}"
 """
 
     JUMP_STATS = """\
