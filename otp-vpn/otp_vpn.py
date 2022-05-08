@@ -50,7 +50,7 @@ def write_file(file_content, file_name, file_mode=0o640):
 
 if __name__ == "__main__":
 
-    for my_tool in ['tilda', 'openvpn', 'git']:
+    for my_tool in ['rxvt-unicode', 'openvpn', 'git']:
         if not is_tool(my_tool):
             print(f'please install {my_tool} or add it to PATH')
             os.sys.exit()
