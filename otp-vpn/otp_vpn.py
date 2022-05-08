@@ -55,7 +55,7 @@ if __name__ == "__main__":
 
     for my_tool in ['rxvt-unicode', 'openvpn', 'git']:
         if not is_tool(my_tool):
-            print('please install {} or add it to PATH'.format(my_tool))
+            print(f'please install {my_tool} or add it to PATH')
             os.sys.exit()
 
     if not os.path.isfile('/etc/openvpn/update-systemd-resolved'):
@@ -95,7 +95,7 @@ vpn_password = your_password
 """
     if not os.path.isfile(OTPCONFIG):
         write_file(OTPCONFIG_CONTENT, OTPCONFIG)
-        print(" Could not open {0}\n A sample file {0} was created\n".format(OTPCONFIG))
+        print(f" Could not open {OTPCONFIG}\n A sample file {OTPCONFIG} was created\n")
         print(" Please edit this file and fill in your secret, username and password")
         os.sys.exit()
 
@@ -105,11 +105,11 @@ vpn_password = your_password
     VPN_USER = CONFIG.get('otp-vpn', 'vpn_user')
     VPN_PASSWORD = CONFIG.get('otp-vpn', 'vpn_password')
 
-    CLIENT_OVPN = """\
+    CLIENT_OVPN = f"""\
 client
 verb 2
 dev tun
-#log {0}/jump.log
+#log {MY_USER_DIR}/jump.log
 remote 83.97.92.126 1194
 remote 83.97.92.163 1194
 remote 2001:798:3::96 1194
@@ -139,7 +139,7 @@ remote-cert-tls server
 data-ciphers-fallback AES-256-CBC
 reneg-sec 0
 auth-nocache
-auth-user-pass {1}
+auth-user-pass {AUTHFILE}
 <ca>
 -----BEGIN CERTIFICATE-----
 MIIEzTCCA7WgAwIBAgIJALKAow4vc6w7MA0GCSqGSIb3DQEBCwUAMIGfMQswCQYD
@@ -170,14 +170,14 @@ B1tvBOFFVFlEHHK6+eAoIrbG/kzr1onXzxvVTaifUS4KVBcwjrMw89Y0uDSTsXu/
 rqmweNTkxr8iU1vPv8stRYdCTrYcfXffNkhNdz++6Jwz
 -----END CERTIFICATE-----
 </ca>
-""".format(MY_USER_DIR, AUTHFILE)
+"""
 
-    JUMP_ON = """\
+    JUMP_ON = f"""\
 #!/bin/bash
 rxvt -depth 32 -bg rgba:0000/0000/0000/9999 -fg "[99]green" \\
     --geometry 160x15 -title "Jump VPN" -e /bin/bash \\
-    -c "sudo openvpn --config {}"
-""".format(OVPNFILE)
+    -c "sudo openvpn --config {OVPNFILE}"
+"""
 
     JUMP_STATS = """\
 echo "printing OpenVPN statistics"
@@ -189,7 +189,7 @@ echo "disconnecting OpenVPN"
 echo "signal SIGINT" | telnet 127.0.0.1 7505 >/dev/null
 """
 
-    JUMP_ON_DESKTOP = """\
+    JUMP_ON_DESKTOP = f"""\
 [Desktop Entry]
 Encoding=UTF-8
 Name=Jump VPN
@@ -205,42 +205,42 @@ Actions=off;stats;
 
 [Desktop Action off]
 Name=Jump VPN OFF
-Exec={0}/bin/jump_off.sh
+Exec={MY_USER_DIR}/bin/jump_off.sh
 
 [Desktop Action stats]
 Name=Jump VPN Stats
-Exec={0}/bin/jump_stats.sh
-""".format(MY_USER_DIR)
+Exec={MY_USER_DIR}/bin/jump_stats.sh
+"""
 
-    JUMP_OFF_DESKTOP = """\
+    JUMP_OFF_DESKTOP = f"""\
 [Desktop Entry]
 Encoding=UTF-8
 Name=Jump VPN OFF
 GenericName=Close Jump VPN connection
 Comment=Close Jump VPN connection
-Exec={}/bin/jump_off.sh
+Exec={MY_USER_DIR}/bin/jump_off.sh
 Icon=network-vpn-acquiring-symbolic
 Terminal=false
 Type=Application
 MimeType=text/plain;
 Categories=Network;
-""".format(MY_USER_DIR)
+"""
 
-    JUMP_STATS_DESKTOP = """\
+    JUMP_STATS_DESKTOP = f"""\
 [Desktop Entry]
 Encoding=UTF-8
 Name=Jump VPN Stats
 GenericName=Dump VPN Statistics
 Comment=Close Jump VPN Statistics
-Exec={}/bin/jump_stats.sh
+Exec={MY_USER_DIR}/bin/jump_stats.sh
 Icon=network-vpn-no-route-symbolic
 Terminal=false
 Type=Application
 MimeType=text/plain;
 Categories=Network;
-""".format(MY_USER_DIR)
+"""
 
-    SCRIPT_PREFIX = "{}/bin/jump_".format(MY_USER_DIR)
+    SCRIPT_PREFIX = f"{MY_USER_DIR}/bin/jump_"
     write_file(JUMP_ON_DESKTOP, os.path.join(
         MY_USER_DIR, '.local/share/applications/jump-vpn.desktop'))
     write_file(JUMP_STATS_DESKTOP, os.path.join(
@@ -248,23 +248,23 @@ Categories=Network;
     write_file(JUMP_OFF_DESKTOP, os.path.join(
         MY_USER_DIR, '.local/share/applications/jump-vpn-off.desktop'))
     write_file(CLIENT_OVPN, OVPNFILE)
-    write_file(JUMP_ON, "{}on.sh".format(SCRIPT_PREFIX))
-    write_file(JUMP_OFF, "{}off.sh".format(SCRIPT_PREFIX))
-    write_file(JUMP_STATS, "{}stats.sh".format(SCRIPT_PREFIX))
+    write_file(JUMP_ON, f"{SCRIPT_PREFIX}on.sh")
+    write_file(JUMP_OFF, f"{SCRIPT_PREFIX}off.sh")
+    write_file(JUMP_STATS, f"{SCRIPT_PREFIX}stats.sh")
 
     MY_TOKEN = get_otp(OTP_SECRET)
-    write_file("{}\n{}{}\n".format(VPN_USER, VPN_PASSWORD, MY_TOKEN), AUTHFILE)
+    write_file(f"{VPN_USER}\n{VPN_PASSWORD}{MY_TOKEN}\n", AUTHFILE)
 
     # Fix permissions
-    os.chmod("{}on.sh".format(SCRIPT_PREFIX), 0o755)
-    os.chmod("{}off.sh".format(SCRIPT_PREFIX), 0o755)
-    os.chmod("{}stats.sh".format(SCRIPT_PREFIX), 0o755)
+    os.chmod("f{SCRIPT_PREFIX}on.sh", 0o755)
+    os.chmod("f{SCRIPT_PREFIX}off.sh", 0o755)
+    os.chmod("f{SCRIPT_PREFIX}stats.sh", 0o755)
     os.chmod(AUTHFILE, 0o600)
     os.chmod(OTPCONFIG, 0o640)
 
     # Here we go:
     PROC = subprocess.Popen(
-        "{}on.sh".format(SCRIPT_PREFIX),
+        f"{SCRIPT_PREFIX}on.sh",
         shell=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT
