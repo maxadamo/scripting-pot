@@ -8,14 +8,14 @@ if we set user nobody and group nogroup, upon disconnection it fails to restore 
 
 Author: Massimiliano Adamo <massimiliano.adamo@geant.org>
 '''
-from distutils.spawn import find_executable
+import shutil
 import configparser
 import subprocess
 import os
 try:
-    import onetimepass as otp
+    import pyotp
 except ImportError:
-    print("Please install onetimepass: pip3 install onetimepass\n")
+    print("Please install onetimepass: pip3 install pyotp\n")
     os.sys.exit()
 
 
@@ -34,12 +34,13 @@ def git_pull(scripting_pot):
 
 def is_tool(application):
     """Check whether `name` is on PATH."""
-    return find_executable(application) is not None
+    return shutil.which(application) is not None
 
 
 def get_otp(otp_secret):
     """ common commands """
-    return otp.get_totp(otp_secret, as_string=True).decode()
+    totp = pyotp.TOTP(otp_secret)
+    return totp.now()
 
 
 def write_file(file_content, file_name):
@@ -50,7 +51,6 @@ def write_file(file_content, file_name):
 
 
 if __name__ == "__main__":
-
 
     for my_tool in ['rxvt-unicode', 'openvpn', 'git']:
         if not is_tool(my_tool):
@@ -116,7 +116,7 @@ remote-random
 ncp-disable
 script-security 2
 # pull-filter ignore "dhcp-option DNS" # usually not needed
-# push "dhcp-option DNS 123.45.56.89" # usually not needed
+push "dhcp-option DNS 83.97.93.200" # usually not needed
 # push "dhcp-option DNS 234.56.78.99" # usually not needed
 setenv PATH /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 up /etc/openvpn/update-resolv-conf
@@ -131,7 +131,7 @@ nobind
 persist-key
 persist-tun
 remote-cert-tls server
-cipher AES-256-CBC
+data-cipher AES-256-CBC
 reneg-sec 0
 auth-nocache
 auth-user-pass {1}
