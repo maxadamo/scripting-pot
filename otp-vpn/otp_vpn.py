@@ -106,7 +106,7 @@ vpn_password = your_password
 client
 verb 2
 dev tun
-log {MY_USER_DIR}/jump.log
+#log {MY_USER_DIR}/jump.log
 remote 83.97.92.126 1194
 remote 83.97.92.163 1194
 #remote 2001:798:3::96 1194
