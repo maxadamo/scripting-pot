@@ -115,7 +115,6 @@ connect-timeout 3
 connect-retry 2
 connect-retry-max 2
 remote-random
-ncp-disable
 script-security 2
 # pull-filter ignore "dhcp-option DNS" # usually not needed
 push "dhcp-option DNS 83.97.93.200" # usually not needed

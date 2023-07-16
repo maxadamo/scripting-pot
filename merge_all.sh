@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 if [ ! -d .git ]; then
-    echo "not a git root directory"
+    echo "FATAL: not a git root directory"
     exit
 fi
 
