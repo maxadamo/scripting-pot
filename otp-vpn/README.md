@@ -1,5 +1,14 @@
 # How to use it
 
+## packages requirement
+
+On deb based systems you need to install the followings:
+
+```bash
+python3-pyotp
+python3-git
+```
+
 ## first time setup
 
 Let's assume you are logged in as user `foo`. You need first a sudo rule for your user as following:

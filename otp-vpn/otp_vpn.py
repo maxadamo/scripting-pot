@@ -8,12 +8,11 @@ if we set user nobody and group nogroup, upon disconnection it fails to restore 
 
 Author: Massimiliano Adamo <massimiliano.adamo@geant.org>
 '''
-from genericpath import isfile
+import os
 import shutil
 import configparser
 import subprocess
 import git
-import os
 try:
     import pyotp
 except ImportError:
