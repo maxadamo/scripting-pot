@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-'''
+"""
 Stores OTP challenge to auth file and access OpenVPN
 
 The first time the script creates a configuration file: ~/.vpn-credentials
@@ -7,13 +7,13 @@ The first time the script creates a configuration file: ~/.vpn-credentials
 if we set user nobody and group nogroup, upon disconnection it fails to restore resolv.conf
 
 Author: Massimiliano Adamo <massimiliano.adamo@geant.org>
-'''
-from genericpath import isfile
+"""
+import os
 import shutil
 import configparser
 import subprocess
 import git
-import os
+
 try:
     import pyotp
 except ImportError:
@@ -22,10 +22,10 @@ except ImportError:
 
 
 def git_pull(scripting_pot):
-    """ update repository """
+    """update repository"""
     git_cmd = git.cmd.Git(scripting_pot)
-    git_cmd.reset('--hard', 'FETCH_HEAD')
-    git_cmd.checkout('master')
+    git_cmd.reset("--hard", "FETCH_HEAD")
+    git_cmd.checkout("master")
     git_cmd.pull()
 
 
@@ -35,14 +35,14 @@ def is_tool(application):
 
 
 def get_otp(otp_secret):
-    """ common commands """
+    """common commands"""
     totp = pyotp.TOTP(otp_secret)
     return totp.now()
 
 
 def write_file(file_content, file_name, file_mode=0o640):
-    """ write ovpn client """
-    config_file = open(file_name, 'w')
+    """write ovpn client"""
+    config_file = open(file_name, "w", encoding="utf-8")
     config_file.write(file_content)
     config_file.close()
     os.chmod(file_name, file_mode)
@@ -50,22 +50,22 @@ def write_file(file_content, file_name, file_mode=0o640):
 
 if __name__ == "__main__":
 
-    for my_tool in ['rxvt-unicode', 'openvpn', 'git']:
+    for my_tool in ["rxvt-unicode", "openvpn", "git"]:
         if not is_tool(my_tool):
-            print(f'please install {my_tool} or add it to PATH')
+            print(f"please install {my_tool} or add it to PATH")
             os.sys.exit()
 
-    if not os.path.isfile('/etc/openvpn/update-systemd-resolved'):
-        print('please install openvpn-systemd-resolved')
+    if not os.path.isfile("/etc/openvpn/update-systemd-resolved"):
+        print("please install openvpn-systemd-resolved")
         os.sys.exit()
 
     SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
     SCRIPT_NAME = os.path.basename(__file__)
     SCRIPT_PATH = os.path.join(SCRIPT_DIR, SCRIPT_NAME)
-    MY_USER_DIR = os.path.expanduser('~')
-    SCRIPT_LINK = os.path.join(MY_USER_DIR, 'bin', SCRIPT_NAME)
+    MY_USER_DIR = os.path.expanduser("~")
+    SCRIPT_LINK = os.path.join(MY_USER_DIR, "bin", SCRIPT_NAME)
     try:
-        os.makedirs(os.path.join(MY_USER_DIR, 'bin'))
+        os.makedirs(os.path.join(MY_USER_DIR, "bin"))
     except FileExistsError:
         pass
     if not os.path.islink(SCRIPT_LINK):
@@ -77,9 +77,9 @@ if __name__ == "__main__":
     if TARGET_DIR:
         git_pull(TARGET_DIR)
 
-    OTPCONFIG = os.path.join(MY_USER_DIR, '.vpn-credentials')
-    OVPNFILE = os.path.join(MY_USER_DIR, '.client.ovpn')
-    AUTHFILE = os.path.join(MY_USER_DIR, '.vpn-auth')
+    OTPCONFIG = os.path.join(MY_USER_DIR, ".vpn-credentials")
+    OVPNFILE = os.path.join(MY_USER_DIR, ".client.ovpn")
+    AUTHFILE = os.path.join(MY_USER_DIR, ".vpn-auth")
 
     OTPCONFIG_CONTENT = """\
 [otp-vpn]
@@ -98,9 +98,9 @@ vpn_password = your_password
 
     CONFIG = configparser.RawConfigParser()
     _ = CONFIG.read(OTPCONFIG)
-    OTP_SECRET = CONFIG.get('otp-vpn', 'otp_secret')
-    VPN_USER = CONFIG.get('otp-vpn', 'vpn_user')
-    VPN_PASSWORD = CONFIG.get('otp-vpn', 'vpn_password')
+    OTP_SECRET = CONFIG.get("otp-vpn", "otp_secret")
+    VPN_USER = CONFIG.get("otp-vpn", "vpn_user")
+    VPN_PASSWORD = CONFIG.get("otp-vpn", "vpn_password")
 
     CLIENT_OVPN = f"""\
 client
@@ -115,7 +115,6 @@ connect-timeout 3
 connect-retry 2
 connect-retry-max 2
 remote-random
-ncp-disable
 script-security 2
 # pull-filter ignore "dhcp-option DNS" # usually not needed
 push "dhcp-option DNS 83.97.93.200" # usually not needed
@@ -238,12 +237,18 @@ Categories=Network;
 """
 
     SCRIPT_PREFIX = f"{MY_USER_DIR}/bin/jump_"
-    write_file(JUMP_ON_DESKTOP, os.path.join(
-        MY_USER_DIR, '.local/share/applications/jump-vpn.desktop'))
-    write_file(JUMP_STATS_DESKTOP, os.path.join(
-        MY_USER_DIR, '.local/share/applications/jump-vpn-stats.desktop'))
-    write_file(JUMP_OFF_DESKTOP, os.path.join(
-        MY_USER_DIR, '.local/share/applications/jump-vpn-off.desktop'))
+    write_file(
+        JUMP_ON_DESKTOP,
+        os.path.join(MY_USER_DIR, ".local/share/applications/jump-vpn.desktop"),
+    )
+    write_file(
+        JUMP_STATS_DESKTOP,
+        os.path.join(MY_USER_DIR, ".local/share/applications/jump-vpn-stats.desktop"),
+    )
+    write_file(
+        JUMP_OFF_DESKTOP,
+        os.path.join(MY_USER_DIR, ".local/share/applications/jump-vpn-off.desktop"),
+    )
     write_file(CLIENT_OVPN, OVPNFILE)
     write_file(JUMP_ON, f"{SCRIPT_PREFIX}on.sh", 0o755)
     write_file(JUMP_OFF, f"{SCRIPT_PREFIX}off.sh", 0o755)
@@ -257,5 +262,5 @@ Categories=Network;
         f"{SCRIPT_PREFIX}on.sh",
         shell=True,
         stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT
+        stderr=subprocess.STDOUT,
     )

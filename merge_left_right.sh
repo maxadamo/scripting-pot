@@ -32,7 +32,7 @@ if [[ $REPLY =~ ^[yY]$ ]]; then
         git merge production; git push
         # checkout production
         git checkout production
-        git merge test
+        git merge uat
         git push
     fi
 
