@@ -5,7 +5,7 @@ if ! git remote &>/dev/null; then
     exit
 fi
 
-git up
+git-up
 
 echo -e "\nYou are merging the repository $(basename $(pwd))\n"
 read -p "Are you sure? [Yy] " -n 1 -r
