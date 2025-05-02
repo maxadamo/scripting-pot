@@ -177,12 +177,12 @@ rxvt -depth 32 -bg rgba:0000/0000/0000/9999 -fg "[99]green" \\
 
     JUMP_STATS = """\
 echo "printing OpenVPN statistics"
-echo -e "signal SIGUSR2\nquit" | nc 127.0.0.1 7505 &>/dev/null
+echo -e "signal SIGUSR2\\nquit" | nc 127.0.0.1 7505 &>/dev/null
 """
 
     JUMP_OFF = """\
 echo "disconnecting OpenVPN"
-echo -e "signal SIGINT\nquit" | nc 127.0.0.1 7505 &>/dev/null
+echo -e "signal SIGINT\\nquit" | nc 127.0.0.1 7505 &>/dev/null
 """
 
     JUMP_ON_DESKTOP = f"""\
