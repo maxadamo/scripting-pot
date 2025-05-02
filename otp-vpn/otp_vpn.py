@@ -12,7 +12,6 @@ import os
 import shutil
 import configparser
 import subprocess
-import git
 
 try:
     import pyotp
@@ -21,37 +20,23 @@ except ImportError:
     os.sys.exit()
 
 
-def git_pull(scripting_pot):
-    """update repository"""
-    git_cmd = git.cmd.Git(scripting_pot)
-    git_cmd.reset("--hard", "FETCH_HEAD")
-    git_cmd.checkout("master")
-    git_cmd.pull()
-
-
-def is_tool(application):
-    """Check whether `name` is on PATH."""
-    return shutil.which(application) is not None
-
-
 def get_otp(otp_secret):
-    """common commands"""
+    """get OTP"""
     totp = pyotp.TOTP(otp_secret)
     return totp.now()
 
 
 def write_file(file_content, file_name, file_mode=0o640):
     """write ovpn client"""
-    config_file = open(file_name, "w", encoding="utf-8")
-    config_file.write(file_content)
-    config_file.close()
+    with open(file_name, "w", encoding="utf-8") as config_file:
+        config_file.write(file_content)
     os.chmod(file_name, file_mode)
 
 
 if __name__ == "__main__":
 
-    for my_tool in ["rxvt-unicode", "openvpn", "git"]:
-        if not is_tool(my_tool):
+    for my_tool in ["rxvt-unicode", "openvpn", "nc"]:
+        if not shutil.which(my_tool):               
             print(f"please install {my_tool} or add it to PATH")
             os.sys.exit()
 
@@ -62,24 +47,18 @@ if __name__ == "__main__":
     SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
     SCRIPT_NAME = os.path.basename(__file__)
     SCRIPT_PATH = os.path.join(SCRIPT_DIR, SCRIPT_NAME)
-    MY_USER_DIR = os.path.expanduser("~")
-    SCRIPT_LINK = os.path.join(MY_USER_DIR, "bin", SCRIPT_NAME)
+    HOME_DIR = os.path.expanduser("~")
+    SCRIPT_LINK = os.path.join(HOME_DIR, "bin", SCRIPT_NAME)
     try:
-        os.makedirs(os.path.join(MY_USER_DIR, "bin"))
+        os.makedirs(os.path.join(HOME_DIR, "bin"))
     except FileExistsError:
         pass
     if not os.path.islink(SCRIPT_LINK):
         os.symlink(SCRIPT_PATH, SCRIPT_LINK)
-        TARGET_DIR = None
-    else:
-        TARGET_DIR = os.path.dirname(os.path.dirname(os.readlink(SCRIPT_LINK)))
 
-    if TARGET_DIR:
-        git_pull(TARGET_DIR)
-
-    OTPCONFIG = os.path.join(MY_USER_DIR, ".vpn-credentials")
-    OVPNFILE = os.path.join(MY_USER_DIR, ".client.ovpn")
-    AUTHFILE = os.path.join(MY_USER_DIR, ".vpn-auth")
+    OTPCONFIG = os.path.join(HOME_DIR, ".vpn-credentials")
+    OVPNFILE = os.path.join(HOME_DIR, ".client.ovpn")
+    AUTHFILE = os.path.join(HOME_DIR, ".vpn-auth")
 
     OTPCONFIG_CONTENT = """\
 [otp-vpn]
@@ -106,7 +85,7 @@ vpn_password = your_password
 client
 verb 2
 dev tun
-#log {MY_USER_DIR}/jump.log
+#log {HOME_DIR}/jump.log
 remote 83.97.92.126 1194
 remote 83.97.92.163 1194
 #remote 2001:798:3::96 1194
@@ -176,13 +155,15 @@ rxvt -depth 32 -bg rgba:0000/0000/0000/9999 -fg "[99]green" \\
 """
 
     JUMP_STATS = """\
+#!/bin/bash
 echo "printing OpenVPN statistics"
-echo -e "signal SIGUSR2\\nquit" | nc 127.0.0.1 7505 &>/dev/null
+echo -e "signal SIGUSR2\\nquit" | nc 127.0.0.1 7505 >/dev/null
 """
 
     JUMP_OFF = """\
+#!/bin/bash
 echo "disconnecting OpenVPN"
-echo -e "signal SIGINT\\nquit" | nc 127.0.0.1 7505 &>/dev/null
+echo -e "signal SIGINT\\nquit" | nc 127.0.0.1 7505 >/dev/null
 """
 
     JUMP_ON_DESKTOP = f"""\
@@ -191,7 +172,7 @@ Encoding=UTF-8
 Name=Jump VPN
 GenericName=Jump VPN with OTP
 Comment=Launch Jump VPN with OTP
-Exec={MY_USER_DIR}/bin/otp_vpn.py
+Exec={HOME_DIR}/bin/otp_vpn.py
 Icon=network-vpn-symbolic
 Terminal=false
 Type=Application
@@ -201,11 +182,11 @@ Actions=off;stats;
 
 [Desktop Action off]
 Name=Jump VPN OFF
-Exec={MY_USER_DIR}/bin/jump_off.sh
+Exec={HOME_DIR}/bin/jump_off.sh
 
 [Desktop Action stats]
 Name=Jump VPN Stats
-Exec={MY_USER_DIR}/bin/jump_stats.sh
+Exec={HOME_DIR}/bin/jump_stats.sh
 """
 
     JUMP_OFF_DESKTOP = f"""\
@@ -214,7 +195,7 @@ Encoding=UTF-8
 Name=Jump VPN OFF
 GenericName=Close Jump VPN connection
 Comment=Close Jump VPN connection
-Exec={MY_USER_DIR}/bin/jump_off.sh
+Exec={HOME_DIR}/bin/jump_off.sh
 Icon=network-vpn-acquiring-symbolic
 Terminal=false
 Type=Application
@@ -228,7 +209,7 @@ Encoding=UTF-8
 Name=Jump VPN Stats
 GenericName=Dump VPN Statistics
 Comment=Close Jump VPN Statistics
-Exec={MY_USER_DIR}/bin/jump_stats.sh
+Exec={HOME_DIR}/bin/jump_stats.sh
 Icon=network-vpn-no-route-symbolic
 Terminal=false
 Type=Application
@@ -236,18 +217,18 @@ MimeType=text/plain;
 Categories=Network;
 """
 
-    SCRIPT_PREFIX = f"{MY_USER_DIR}/bin/jump_"
+    SCRIPT_PREFIX = f"{HOME_DIR}/bin/jump_"
     write_file(
         JUMP_ON_DESKTOP,
-        os.path.join(MY_USER_DIR, ".local/share/applications/jump-vpn.desktop"),
+        os.path.join(HOME_DIR, ".local/share/applications/jump-vpn.desktop"),
     )
     write_file(
         JUMP_STATS_DESKTOP,
-        os.path.join(MY_USER_DIR, ".local/share/applications/jump-vpn-stats.desktop"),
+        os.path.join(HOME_DIR, ".local/share/applications/jump-vpn-stats.desktop"),
     )
     write_file(
         JUMP_OFF_DESKTOP,
-        os.path.join(MY_USER_DIR, ".local/share/applications/jump-vpn-off.desktop"),
+        os.path.join(HOME_DIR, ".local/share/applications/jump-vpn-off.desktop"),
     )
     write_file(CLIENT_OVPN, OVPNFILE)
     write_file(JUMP_ON, f"{SCRIPT_PREFIX}on.sh", 0o755)
