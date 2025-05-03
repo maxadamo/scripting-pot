@@ -10,8 +10,8 @@ Author: Massimiliano Adamo <massimiliano.adamo@geant.org>
 """
 import os
 import shutil
+import urllib.request
 import configparser
-import subprocess
 
 try:
     import pyotp
@@ -27,7 +27,7 @@ def get_otp(otp_secret):
 
 
 def write_file(file_content, file_name, file_mode=0o640):
-    """write ovpn client"""
+    """write a given file"""
     with open(file_name, "w", encoding="utf-8") as config_file:
         config_file.write(file_content)
     os.chmod(file_name, file_mode)
@@ -35,30 +35,40 @@ def write_file(file_content, file_name, file_mode=0o640):
 
 if __name__ == "__main__":
 
-    for my_tool in ["rxvt-unicode", "openvpn", "nc"]:
-        if not shutil.which(my_tool):               
-            print(f"please install {my_tool} or add it to PATH")
-            os.sys.exit()
+    SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+    SCRIPT_NAME = os.path.basename(__file__)
+    SCRIPT_PATH = os.path.join(SCRIPT_DIR, SCRIPT_NAME)
+    HOME_DIR = os.path.expanduser("~")
+    BIN_DIR = os.path.join(HOME_DIR, "bin")
+    SCRIPT_LINK = os.path.join(BIN_DIR, SCRIPT_NAME)
+    OTPCONFIG = os.path.join(HOME_DIR, ".vpn-credentials")
+    OVPNFILE = os.path.join(HOME_DIR, ".client.ovpn")
+    AUTHFILE = os.path.join(HOME_DIR, ".vpn-auth")
+    APPS_DIR = os.path.join(HOME_DIR, ".local/share/applications")
+    SCRIPT_URL = "https://raw.githubusercontent.com/maxadamo/scripting-pot/refs/heads/master/otp-vpn/otp_vpn.py"
+
+    with urllib.request.urlopen(SCRIPT_URL) as response:
+        content = response.read().decode("utf-8")
+
+    write_file(content, __file__, 0o755)
+
+    os.system(f"rm -f {BIN_DIR}/jump_*.sh")  # temporary hack: keep it simple
+
+    if not shutil.which("openvpn") or not shutil.which("nc"):
+        print("Please ensure that 'openvpn' and 'nc' are installed")
+        os.sys.exit()
 
     if not os.path.isfile("/etc/openvpn/update-systemd-resolved"):
         print("please install openvpn-systemd-resolved")
         os.sys.exit()
 
-    SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-    SCRIPT_NAME = os.path.basename(__file__)
-    SCRIPT_PATH = os.path.join(SCRIPT_DIR, SCRIPT_NAME)
-    HOME_DIR = os.path.expanduser("~")
-    SCRIPT_LINK = os.path.join(HOME_DIR, "bin", SCRIPT_NAME)
-    try:
-        os.makedirs(os.path.join(HOME_DIR, "bin"))
-    except FileExistsError:
-        pass
-    if not os.path.islink(SCRIPT_LINK):
-        os.symlink(SCRIPT_PATH, SCRIPT_LINK)
+    if not os.path.isdir(BIN_DIR):
+        print("Creating ~/bin directory")
+        os.makedirs(BIN_DIR)
 
-    OTPCONFIG = os.path.join(HOME_DIR, ".vpn-credentials")
-    OVPNFILE = os.path.join(HOME_DIR, ".client.ovpn")
-    AUTHFILE = os.path.join(HOME_DIR, ".vpn-auth")
+    if SCRIPT_LINK != SCRIPT_PATH and not os.path.islink(SCRIPT_LINK):
+        print(f"Creating symlink {SCRIPT_LINK} -> {SCRIPT_PATH}")
+        os.symlink(SCRIPT_PATH, SCRIPT_LINK)
 
     OTPCONFIG_CONTENT = """\
 [otp-vpn]
@@ -69,10 +79,11 @@ vpn_user = username.vpn
 # VPN Password
 vpn_password = your_password
 """
+
     if not os.path.isfile(OTPCONFIG):
         write_file(OTPCONFIG_CONTENT, OTPCONFIG, 0o640)
         print(f" Could not open {OTPCONFIG}\n A sample file {OTPCONFIG} was created\n")
-        print(" Please edit this file and fill in your secret, username and password")
+        print(" Please edit this file and fill in secret, username and password")
         os.sys.exit()
 
     CONFIG = configparser.RawConfigParser()
@@ -149,21 +160,7 @@ rqmweNTkxr8iU1vPv8stRYdCTrYcfXffNkhNdz++6Jwz
 
     JUMP_ON = f"""\
 #!/bin/bash
-rxvt -depth 32 -bg rgba:0000/0000/0000/9999 -fg "[99]green" \\
-    --geometry 160x15 -title "Jump VPN" -e /bin/bash \\
-    -c "sudo openvpn --config {OVPNFILE}"
-"""
-
-    JUMP_STATS = """\
-#!/bin/bash
-echo "printing OpenVPN statistics"
-echo -e "signal SIGUSR2\\nquit" | nc 127.0.0.1 7505 >/dev/null
-"""
-
-    JUMP_OFF = """\
-#!/bin/bash
-echo "disconnecting OpenVPN"
-echo -e "signal SIGINT\\nquit" | nc 127.0.0.1 7505 >/dev/null
+sudo openvpn --config {OVPNFILE}
 """
 
     JUMP_ON_DESKTOP = f"""\
@@ -172,9 +169,9 @@ Encoding=UTF-8
 Name=Jump VPN
 GenericName=Jump VPN with OTP
 Comment=Launch Jump VPN with OTP
-Exec={HOME_DIR}/bin/otp_vpn.py
+Exec={BIN_DIR}/otp_vpn.py
 Icon=network-vpn-symbolic
-Terminal=false
+Terminal=true
 Type=Application
 MimeType=text/plain;
 Categories=Network;
@@ -182,20 +179,22 @@ Actions=off;stats;
 
 [Desktop Action off]
 Name=Jump VPN OFF
-Exec={HOME_DIR}/bin/jump_off.sh
+Terminal=false
+Exec=bash -c 'echo -e "signal SIGINT\\nquit" | nc 127.0.0.1 7505'
 
 [Desktop Action stats]
 Name=Jump VPN Stats
-Exec={HOME_DIR}/bin/jump_stats.sh
+Terminal=false
+Exec=bash -c 'echo -e "signal SIGUSR2\\nquit" | nc 127.0.0.1 7505'
 """
 
-    JUMP_OFF_DESKTOP = f"""\
+    JUMP_OFF_DESKTOP = """\
 [Desktop Entry]
 Encoding=UTF-8
 Name=Jump VPN OFF
 GenericName=Close Jump VPN connection
 Comment=Close Jump VPN connection
-Exec={HOME_DIR}/bin/jump_off.sh
+Exec=bash -c 'echo -e "signal SIGINT\\nquit" | nc 127.0.0.1 7505'
 Icon=network-vpn-acquiring-symbolic
 Terminal=false
 Type=Application
@@ -203,13 +202,13 @@ MimeType=text/plain;
 Categories=Network;
 """
 
-    JUMP_STATS_DESKTOP = f"""\
+    JUMP_STATS_DESKTOP = """\
 [Desktop Entry]
 Encoding=UTF-8
 Name=Jump VPN Stats
 GenericName=Dump VPN Statistics
 Comment=Close Jump VPN Statistics
-Exec={HOME_DIR}/bin/jump_stats.sh
+Exec=bash -c 'echo -e "signal SIGUSR2\\nquit" | nc 127.0.0.1 7505'
 Icon=network-vpn-no-route-symbolic
 Terminal=false
 Type=Application
@@ -217,31 +216,12 @@ MimeType=text/plain;
 Categories=Network;
 """
 
-    SCRIPT_PREFIX = f"{HOME_DIR}/bin/jump_"
-    write_file(
-        JUMP_ON_DESKTOP,
-        os.path.join(HOME_DIR, ".local/share/applications/jump-vpn.desktop"),
-    )
-    write_file(
-        JUMP_STATS_DESKTOP,
-        os.path.join(HOME_DIR, ".local/share/applications/jump-vpn-stats.desktop"),
-    )
-    write_file(
-        JUMP_OFF_DESKTOP,
-        os.path.join(HOME_DIR, ".local/share/applications/jump-vpn-off.desktop"),
-    )
+    write_file(JUMP_ON_DESKTOP, f"{APPS_DIR}/jump-vpn.desktop")
+    write_file(JUMP_STATS_DESKTOP, f"{APPS_DIR}/jump-vpn-stats.desktop")
+    write_file(JUMP_OFF_DESKTOP, f"{APPS_DIR}/jump-vpn-off.desktop")
     write_file(CLIENT_OVPN, OVPNFILE)
-    write_file(JUMP_ON, f"{SCRIPT_PREFIX}on.sh", 0o755)
-    write_file(JUMP_OFF, f"{SCRIPT_PREFIX}off.sh", 0o755)
-    write_file(JUMP_STATS, f"{SCRIPT_PREFIX}stats.sh", 0o755)
-
-    MY_TOKEN = get_otp(OTP_SECRET)
-    write_file(f"{VPN_USER}\n{VPN_PASSWORD}{MY_TOKEN}\n", AUTHFILE, 0o600)
 
     # Here we go:
-    PROC = subprocess.Popen(
-        f"{SCRIPT_PREFIX}on.sh",
-        shell=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-    )
+    MY_TOKEN = get_otp(OTP_SECRET)
+    write_file(f"{VPN_USER}\n{VPN_PASSWORD}{MY_TOKEN}\n", AUTHFILE, 0o600)
+    os.system(f"sudo openvpn --config {OVPNFILE}")
