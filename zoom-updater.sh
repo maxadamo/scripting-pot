@@ -5,7 +5,7 @@
 # No crontab, no systemd-timer needed.
 # This script will download the latest Zoom .deb package and create a local APT repository.
 #
-KEEP=3  # versions to keep
+KEEP=3 # versions to keep
 
 PKG=zoom_amd64
 URL=https://zoom.us/client/latest/${PKG}.deb
@@ -15,6 +15,8 @@ APT_CONF=/etc/apt/apt.conf.d/999update_zoom
 SOURCE_LIST=/etc/apt/sources.list.d/zoomdebs.sources
 SCRIPT_PATH=$(realpath $0)
 ZOOM_VER=$(curl -I -L $URL 2>&1 | awk -F/ '/location/{print $5}')
+APT_CONF_CONTENT="APT::Update::Pre-Invoke {\"${SCRIPT_PATH}\";};"
+APT_CONF_CHECKSUM=$(md5sum "$APT_CONF" | awk '{print $1}')
 
 if [ "$(id -gn)" != "root" ]; then
     echo "this script must be run as root"
@@ -23,31 +25,16 @@ fi
 
 # setup files and directories
 set +o noclobber
-if ! echo "APT::Update::Pre-Invoke {\"${SCRIPT_PATH}\";};" | cmp -s $APT_CONF -; then
-    echo "creating $APT_CONF"
-    echo "APT::Update::Pre-Invoke {\"${SCRIPT_PATH}\";};" >$APT_CONF
-fi
-
-if ! echo -e "Types: deb
-URIs: file:/usr/local/zoomdebs/
-Suites: ./
-Components: 
-Allow-Insecure: yes
-Signed-By: /dev/null
-Trusted: yes" | cmp -s $SOURCE_LIST -; then
-    echo "creating $SOURCE_LIST"
+cmp $APT_CONF <(echo $APT_CONF_CONTENT) || echo "$APT_CONF_CONTENT" >$APT_CONF
+[ $APT_CONF_CHECKSUM == "578d4709b1b3d1c289ae80b86170b334" ] ||
     echo -e "Types: deb
-URIs: file:/usr/local/zoomdebs/
+URIs: file:$DEB_DIR
 Suites: ./
 Components: 
 Allow-Insecure: yes
 Signed-By: /dev/null
 Trusted: yes" >$SOURCE_LIST
-fi
-if [ ! -d "$DEB_DIR" ]; then
-    echo "creating $DEB_DIR"
-    mkdir -p "$DEB_DIR"
-fi
+test -d "$DEB_DIR" || mkdir -p "$DEB_DIR"
 # end setup
 
 cd "$DEB_DIR"

@@ -45,7 +45,10 @@ if __name__ == "__main__":
     OVPNFILE = os.path.join(HOME_DIR, ".client.ovpn")
     AUTHFILE = os.path.join(HOME_DIR, ".vpn-auth")
     APPS_DIR = os.path.join(HOME_DIR, ".local/share/applications")
-    SCRIPT_URL = "https://raw.githubusercontent.com/maxadamo/scripting-pot/refs/heads/master/otp-vpn/otp_vpn.py"
+    SCRIPT_URL = (
+        "https://raw.githubusercontent.com/maxadamo"
+        "/scripting-pot/refs/heads/master/otp-vpn/otp_vpn.py"
+    )
 
     with urllib.request.urlopen(SCRIPT_URL) as response:
         content = response.read().decode("utf-8")
