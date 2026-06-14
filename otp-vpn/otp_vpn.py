@@ -16,7 +16,7 @@ import configparser
 try:
     import pyotp
 except ImportError:
-    print("Please install onetimepass: pip3 install pyotp\n")
+    print("Please install onetimepass: python3-pyotp\n")
     os.sys.exit()
 
 
